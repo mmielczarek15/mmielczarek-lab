@@ -5,7 +5,7 @@ on:
   
 jobs:
   ubuntu-echo:
-    runs-on: labhost_mmiek
+    runs-on: lab_runner
     steps:
       - name: Show OS
         shell: bash
