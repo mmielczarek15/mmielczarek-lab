@@ -8,6 +8,7 @@ jobs:
     runs-on: labhost_mmiek
     steps:
       - name: Show OS
+        shell: bash
         run: |
           echo "This job is running on an Ubuntu runner. $RUNNER_OS"
 
