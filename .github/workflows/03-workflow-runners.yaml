@@ -5,24 +5,24 @@ on:
   
 jobs:
   ubuntu-echo:
-    runs-on: ubuntu-latest
+    runs-on: labhost_mmiek
     steps:
       - name: Show OS
         run: |
           echo "This job is running on an Ubuntu runner. $RUNNER_OS"
 
-  windows-echo:
-    runs-on: windows-latest
-    steps:
-      - name: Show OS
-        shell: bash
-        run: |
-          echo "This job is running on a Windows runner. $RUNNER_OS"
+#  windows-echo:
+#    runs-on: windows-latest
+#    steps:
+#      - name: Show OS
+#        shell: bash
+#        run: |
+#          echo "This job is running on a Windows runner. $RUNNER_OS"
 
-  mac-echo:
-    runs-on: macos-latest
-    steps:
-      - name: Show OS
-        run: |
-          echo "This job is running on a MacOS runner. $RUNNER_OS"
+#  mac-echo:
+#    runs-on: macos-latest
+#    steps:
+#      - name: Show OS
+#        run: |
+#          echo "This job is running on a MacOS runner. $RUNNER_OS"
 
