@@ -9,7 +9,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app
+        working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app-new
 
     steps:
       - name: Checkout Code
