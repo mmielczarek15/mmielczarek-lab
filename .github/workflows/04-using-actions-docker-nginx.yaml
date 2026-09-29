@@ -31,7 +31,7 @@ jobs:
         run: |
           set -eux
           # uruchamiamy w tle, mapujemy port 8081 na hosta
-          CID=$(docker run -d -p 8081:81 "${IMAGE_TAG}")
+          CID=$(docker run -d -p 8081:80 "${IMAGE_TAG}")
           echo "CID=${CID}" >> "$GITHUB_ENV"
 
       - name: Wait for Nginx to be ready
