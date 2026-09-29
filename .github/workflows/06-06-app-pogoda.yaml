@@ -1,0 +1,38 @@
+name: "06-06 Pogoda API CI"
+
+on:
+#  push:
+#    branches: [ feature/06-pogoda-api, main ]
+#  pull_request:
+#    branches: [ feature/06-pogoda-api ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: lab_runner
+    defaults:
+      run:
+        shell: bash
+    env:
+      LOCAL_IMAGE_NAME: python_pogoda:test
+      WORKDIR: ./CWICZENIA/06-context/pogoda_python_flusk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          docker build -t "$LOCAL_IMAGE_NAME" "$WORKDIR"
+      - name: Run Docker container
+        run: |
+          docker run -d --name pogoda_api -p 8000:8000 -e OPENWEATHER_API_KEY="${{ secrets.OPENWEATHER_API_KEY }}" "$LOCAL_IMAGE_NAME"
+      - name: Waiting for start
+        run: |
+          echo "Czekam na start API..."
+          sleep 10
+      - name: Endpoint test
+        run: |
+          set -e
+          echo "Testowanie endpointu /weather..."
+          curl -f "http://localhost:8000/weather?city=Warsaw&api_key=${{ secrets.OPENWEATHER_API_KEY }}"
+          echo
+          echo "OK - endpoint /weather zwrócił odpowiedź 2xx."
