@@ -15,7 +15,7 @@ jobs:
         shell: bash
     env:
       LOCAL_IMAGE_NAME: python_pogoda:test
-      WORKDIR: ./CWICZENIA/06-context/pogoda_python_flusk
+      WORKDIR: /home/student/gha/CWICZENIA/06-context/pogoda_python_flusk
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
