@@ -1,0 +1,12 @@
+name: 04 – Using Actions
+on: 
+  pull_request: [ opened, synchronize ]
+  branches: [ main ]
+
+jobs:
+  echo:
+    runs-on: lab_runner
+    defaults:
+    steps:
+      - name: echo notification
+        run: echo "Running whenever a PR is opened or synchronized AND base branch is main."
