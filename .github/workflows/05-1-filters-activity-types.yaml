@@ -5,7 +5,7 @@ on:
   pull_request:
     - opened
     - synchronize
-    branches: [ main ]
+  branches: [ main ]
 
 jobs:
   echo:
