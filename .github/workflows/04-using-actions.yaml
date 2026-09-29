@@ -1,0 +1,14 @@
+name: 04 – Using Actions
+on: 
+  push:
+
+jobs:
+  build:
+    runs-on: lab_runner
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
