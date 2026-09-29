@@ -15,10 +15,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app-02
+        working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app
         run: |
           set -eux
-          IMAGE_TAG=my-nginx:latest
+          IMAGE_TAG=my-nginx:${GITHUB_SHA}
           docker build -t "${IMAGE_TAG}" .
 
           # zapisz tag do env, użyjemy go w kolejnych krokach
