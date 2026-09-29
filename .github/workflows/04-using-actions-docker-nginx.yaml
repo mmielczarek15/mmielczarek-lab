@@ -30,7 +30,7 @@ jobs:
       - name: Run container
         run: |
           set -eux
-          # uruchamiamy w tle, mapujemy port 8080 na hosta
+          # uruchamiamy w tle, mapujemy port 8081 na hosta
           CID=$(docker run -d -p 8081:81 "${IMAGE_TAG}")
           echo "CID=${CID}" >> "$GITHUB_ENV"
 
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           for i in {1..30}; do
-            if curl -fsS http://localhost:8080/ >/dev/null; then
+            if curl -fsS http://localhost:8081/ >/dev/null; then
               echo "Nginx odpowiada"; exit 0
             fi
             sleep 1
@@ -49,7 +49,7 @@ jobs:
       - name: Test page content with curl
         run: |
           set -eux
-          BODY=$(curl -fsS http://localhost:8080/)
+          BODY=$(curl -fsS http://localhost:8081/)
           echo "----- PAGE BODY START -----"
           echo "$BODY"
           echo "------ PAGE BODY END ------"
