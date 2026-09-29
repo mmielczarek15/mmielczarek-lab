@@ -16,6 +16,7 @@ jobs:
 
       - name: Build Docker image
         working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app
+        shell: bash
         run: |
           set -eux
           IMAGE_TAG=my-nginx:${GITHUB_SHA}
