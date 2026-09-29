@@ -7,7 +7,7 @@ jobs:
     runs-on: lab_runner
     defaults:
       run:
-        working-directory: CWICZENIA/04-praca-z-zewnetrzymi-akcjami/react-app
+        working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/react-app
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
