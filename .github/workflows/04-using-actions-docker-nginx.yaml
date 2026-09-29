@@ -18,7 +18,7 @@ jobs:
         working-directory: /home/student/gha/CWICZENIA/04-praca-z-zewnetrzymi-akcjami/docker-app-02
         run: |
           set -eux
-          IMAGE_TAG=my-nginx:${GITHUB_SHA}
+          IMAGE_TAG=my-nginx:latest
           docker build -t "${IMAGE_TAG}" .
 
           # zapisz tag do env, użyjemy go w kolejnych krokach
