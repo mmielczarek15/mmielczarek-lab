@@ -72,7 +72,7 @@ pipeline {
                     "${TEST_IMAGE}"
 
                     echo "===> Czekam na start API..."
-                    sleep 20
+                    sleep 10
 
                     echo "===> Testuję endpoint /weather..."
                     curl -f "http://localhost:8000/weather?city=Warsaw&api_key=${OPENWEATHER_API_KEY}"
