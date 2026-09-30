@@ -1,0 +1,156 @@
+pipeline {
+    agent any
+
+    environment {
+        // odpowiednik env.WORKDIR
+        WORKDIR = '.'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Multibranch Pipeline zazwyczaj robi checkout sam,
+                // ale zostawiamy jawnie dla jasności.
+                checkout scm
+            }
+        }
+
+        stage('Build test image') {
+            steps {
+                withCredentials([string(credentialsId: 'DOCKERHUB_USERNAME', variable: 'DOCKERHUB_USERNAME'), string(credentialsId: 'DOCKERHUB_TOKEN', variable: 'DOCKERHUB_TOKEN'), string(credentialsId: 'OPENWEATHER_API_KEY', variable: 'OPENWEATHER_API_KEY')]) {
+                    sh '''
+                    set -e
+
+                    TEST_IMAGE="${DOCKERHUB_USERNAME}/python_pogoda:test"
+
+                    echo "===> Buduję lokalny obraz testowy: ${TEST_IMAGE}"
+                    docker build -t "${TEST_IMAGE}" "${WORKDIR}"
+
+                    echo "===> Zapisuję obraz do pliku image.tar"
+                    docker save "${TEST_IMAGE}" -o image.tar
+
+                    echo "===> Build zakończony, plik image.tar gotowy."
+                    '''
+                }
+            }
+        }
+
+        stage('Test image') {
+            steps {
+                withCredentials([string(credentialsId: 'DOCKERHUB_USERNAME', variable: 'DOCKERHUB_USERNAME'), string(credentialsId: 'DOCKERHUB_TOKEN', variable: 'DOCKERHUB_TOKEN'), string(credentialsId: 'OPENWEATHER_API_KEY', variable: 'OPENWEATHER_API_KEY')]) {
+                    sh '''
+                    #!/bin/bash
+                    set -e
+
+                    TEST_IMAGE="${DOCKERHUB_USERNAME}/python_pogoda:test"
+                    CONTAINER_NAME="pogoda_api"
+
+                    cleanup() {
+                    EXIT_CODE=$?
+                    echo "===> Sprzątanie kontenera..."
+                    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+                        if [ $EXIT_CODE -ne 0 ]; then
+                        echo "===> Logi kontenera (bo stage się wywalił):"
+                        docker logs "${CONTAINER_NAME}" || true
+                        fi
+                        docker stop "${CONTAINER_NAME}" || true
+                        docker rm "${CONTAINER_NAME}" || true
+                    fi
+                    exit $EXIT_CODE
+                    }
+                    trap cleanup EXIT
+
+                    echo "===> Ładuję obraz z image.tar"
+                    docker load -i image.tar
+
+                    echo "===> Uruchamiam kontener ${CONTAINER_NAME}..."
+                    docker run -d \
+                    --name "${CONTAINER_NAME}" \
+                    -p 8000:8000 \
+                    -e OPENWEATHER_API_KEY="${OPENWEATHER_API_KEY}" \
+                    "${TEST_IMAGE}"
+
+                    echo "===> Czekam na start API..."
+                    sleep 10
+
+                    echo "===> Testuję endpoint /weather..."
+                    curl -f "http://localhost:8000/weather?city=Warsaw&api_key=${OPENWEATHER_API_KEY}"
+                    echo
+                    echo "===> OK - endpoint /weather zwrócił odpowiedź 2xx."
+                    '''
+                }
+            }
+        }
+
+        stage('Build & Push (release)') {
+            agent { label 'cloud' }
+            // odpowiednik:
+            // if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+            // when {
+            //     allOf {
+            //         branch 'main'           // tylko gałąź main
+            //         not { changeRequest() } // nie dla PR, tylko zwykły push
+            //     }
+            // }
+            steps {
+                withCredentials([string(credentialsId: 'DOCKERHUB_USERNAME', variable: 'DOCKERHUB_USERNAME'), string(credentialsId: 'DOCKERHUB_TOKEN', variable: 'DOCKERHUB_TOKEN'), string(credentialsId: 'OPENWEATHER_API_KEY', variable: 'OPENWEATHER_API_KEY')]) {
+                    sh '''
+                    #!/bin/bash
+                    set -e
+
+                    HUB_IMAGE_BASE="${DOCKERHUB_USERNAME}/python_pogoda"
+
+                    echo "===> Aktualna gałąź: ${GIT_BRANCH}"
+                    echo "===> Commit: ${GIT_COMMIT}"
+
+                    echo "===> Logowanie do Docker Hub..."
+                    echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+                    echo "===> Buduję obraz z tagami: latest oraz ${GIT_COMMIT}"
+                    docker build \
+                    -t "${HUB_IMAGE_BASE}:latest" \
+                    -t "${HUB_IMAGE_BASE}:${GIT_COMMIT}" \
+                    "${WORKDIR}"
+
+                    echo "===> Wypycham obrazy do Docker Hub..."
+                    docker push "${HUB_IMAGE_BASE}:latest"
+                    docker push "${HUB_IMAGE_BASE}:${GIT_COMMIT}"
+
+                    echo "===> Build & push zakończone."
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            agent { label 'ssh_agent' }
+            steps {
+                sh '''
+                #!/bin/bash
+
+                CONTAINER_NAME="prod-app-jf"
+                IMAGE_NAME="piotrskoska/python_pogoda:${GIT_COMMIT}"
+
+                # Sprawdzenie czy kontener istnieje
+                if [ "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then
+                    echo "Kontener ${CONTAINER_NAME} istnieje – zatrzymuję i usuwam..."
+                    docker stop "${CONTAINER_NAME}"
+                    docker rm "${CONTAINER_NAME}"
+                else
+                    echo "Kontener ${CONTAINER_NAME} nie istnieje – uruchamiam nowy..."
+                fi
+
+                # Uruchomienie nowego kontenera
+                echo "Startuję nowy kontener..."
+                docker run -itd --name "${CONTAINER_NAME}" -p 24003:8000 "${IMAGE_NAME}"
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline zakończony (sukces lub porażka)."
+        }
+    }
+}
