@@ -135,8 +135,8 @@ pipeline {
                 # Sprawdzenie czy kontener istnieje
                 if [ "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then
                     echo "Kontener ${CONTAINER_NAME} istnieje – zatrzymuję i usuwam..."
-               //     docker stop "${CONTAINER_NAME}"
-               //     docker rm "${CONTAINER_NAME}"
+                    docker stop "${CONTAINER_NAME}"
+                    docker rm "${CONTAINER_NAME}"
                 else
                     echo "Kontener ${CONTAINER_NAME} nie istnieje – uruchamiam nowy..."
                 fi
